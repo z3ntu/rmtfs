@@ -203,10 +203,13 @@ ssize_t storage_pread(const struct rmtfd *rmtfd, void *buf, size_t nbyte, off_t 
 		n = pread(rmtfd->fd, buf, nbyte, offset);
 	} else {
 		n = MIN(nbyte, rmtfd->shadow_len - offset);
-		if (n > 0)
+		if (n > 0) {
+			printf("%s: memcpy shadow_buf=%p offset=0x%lx n=0x%zx\n", __func__, rmtfd->shadow_buf, offset, n);
 			memcpy(buf, (char*)rmtfd->shadow_buf + offset, n);
-		else
+		} else {
+			printf("%s: memcpy shadow_buf=%p offset=0x%lx n=0x%zx - don't read!\n", __func__, rmtfd->shadow_buf, offset, n);
 			n = 0;
+		}
 	}
 
 	if (n < nbyte)
@@ -287,6 +290,7 @@ static int storage_populate_shadow_buf(struct rmtfd *rmtfd, const char *file)
 
 	rmtfd->shadow_buf = buf;
 	rmtfd->shadow_len = n;
+	printf("%s: file=%s shadow_buf=%p shadow_len=0x%zx\n", __func__, file, rmtfd->shadow_buf, rmtfd->shadow_len);
 
 	ret = 0;
 
